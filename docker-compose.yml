@@ -1,19 +1,31 @@
-version : "3.3"
+version: "3.3"
+
 services:
-  web:
-    image: varsha0108/local_django:latest
-    deploy:
-        replicas: 2
-    ports:
-      - "8001-8005:8001"
-    volumes:
-      - my_django_volume:/app
-  db:
-    image: mysql
-    ports:
-      - "3306:3306"
+  mysqlcon:
+    image: mysql:latest
+    #container_name: mysqlcon
     environment:
-      - "MYSQL_ROOT_PASSWORD=test@123"
-volumes:
-  my_django_volume:
-    external: true
+      - MYSQL_ROOT_PASSWORD=redhat
+      - MYSQL_DATABASE=db_name
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=db_password
+    volumes:
+      - /blogdb:/var/lib/mysql
+    # Set the initial scale for mysqlcon to 1 replica
+    deploy:
+      replicas: 2
+
+  wpcon:
+    image: wordpress:latest
+    environment:
+      - WORDPRESS_DB_HOST=mysqlcon
+      - WORDPRESS_DB_USER=db_user
+      - WORDPRESS_DB_PASSWORD=db_password
+      - WORDPRESS_DB_NAME=db_name
+    ports:
+      - "8780-8783:80"
+    links:
+            - mysqlcon
+    # Set the initial scale for wpcon to 3 replicas
+    deploy:
+      replicas: 4
